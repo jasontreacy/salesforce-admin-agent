@@ -79,7 +79,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: Install Salesforce CLI
         run: npm install -g @salesforce/cli && sf --version
       - name: Authenticate to the allowlisted dev org
@@ -98,7 +98,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          STATUS="${{ steps.validate.outcome }}"
+          # job.status is the truth even when an earlier step (auth, guard-org) failed and validate never ran
+          STATUS="${{ job.status }}"; [ "${{ steps.validate.outcome }}" = "skipped" ] && STATUS="$STATUS (validate step did not run; see earlier step)"
           SUMMARY="$(tail -n 20 validate.log 2>/dev/null || echo 'no output')"
           ID="$(python3 -c 'import json;print(json.load(open("validate-result.json")).get("result",{}).get("id","?"))' 2>/dev/null || echo '?')"
           {
