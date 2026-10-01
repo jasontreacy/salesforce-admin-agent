@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Fulfillment_Method_Required_When_Won</fullName>
+    <active>true</active>
+    <description>A Closed Won opportunity must say how the order will be fulfilled. REQ-001.</description>
+    <errorConditionFormula>ISPICKVAL(StageName, "Closed Won") &amp;&amp; ISPICKVAL(Fulfillment_Method__c, "")</errorConditionFormula>
+    <errorDisplayField>Fulfillment_Method__c</errorDisplayField>
+    <errorMessage>Choose a Fulfillment Method before marking this opportunity Closed Won.</errorMessage>
+</ValidationRule>

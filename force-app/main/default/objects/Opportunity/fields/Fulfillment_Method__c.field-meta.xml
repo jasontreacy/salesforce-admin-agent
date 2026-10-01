@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Fulfillment_Method__c</fullName>
+    <label>Fulfillment Method</label>
+    <description>How the order reaches the retailer. Required when the opportunity is Closed Won (validation rule Fulfillment_Method_Required_When_Won). REQ-001.</description>
+    <inlineHelpText>Must be set before the deal is marked Closed Won.</inlineHelpText>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Ship from Warehouse</fullName><default>false</default><label>Ship from Warehouse</label></value>
+            <value><fullName>Drop Ship from Vendor</fullName><default>false</default><label>Drop Ship from Vendor</label></value>
+            <value><fullName>Store Pickup</fullName><default>false</default><label>Store Pickup</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>
