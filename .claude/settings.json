@@ -1,0 +1,65 @@
+{
+  "$comment": "Project-level Claude Code settings. Two layers: a static deny list (cheap, obvious) and a PreToolUse hook that understands flags and branches (catches what the patterns cannot, e.g. deploy start WITH vs WITHOUT --dry-run). Hooks are snapshotted at session start, so editing this file mid-session does not loosen a running agent.",
+  "permissions": {
+    "allow": [
+      "Bash(sf org list:*)",
+      "Bash(sf org display:*)",
+      "Bash(sf data query:*)",
+      "Bash(sf sobject describe:*)",
+      "Bash(sf sobject list:*)",
+      "Bash(sf project retrieve start:*)",
+      "Bash(scripts/guard-scope.sh:*)",
+      "Bash(scripts/guard-org.sh:*)",
+      "Bash(scripts/guard-metadata.sh:*)",
+      "Bash(scripts/guard-pr-paths.sh:*)",
+      "Bash(scripts/validate.sh:*)",
+      "Bash(scripts/pr-body.sh:*)",
+      "Bash(scripts/tests/run.sh:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git switch:*)",
+      "Bash(git checkout -b:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh run view:*)"
+    ],
+    "deny": [
+      "Bash(sf project deploy quick:*)",
+      "Bash(sf project deploy resume:*)",
+      "Bash(sf data create:*)",
+      "Bash(sf data update:*)",
+      "Bash(sf data delete:*)",
+      "Bash(sf data upsert:*)",
+      "Bash(sf data import:*)",
+      "Bash(sf apex run:*)",
+      "Bash(sf org delete:*)",
+      "Bash(sf org create:*)",
+      "Bash(sf org login:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh pr review:*)",
+      "Bash(gh repo delete:*)",
+      "Bash(gh secret:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git push origin main:*)",
+      "Bash(git push origin HEAD:main:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-commands.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}

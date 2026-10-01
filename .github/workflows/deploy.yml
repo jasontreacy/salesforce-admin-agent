@@ -1,0 +1,51 @@
+name: deploy
+
+# The ONLY place a real deployment happens, and it cannot start without a human.
+#   - Triggered by a push to main that changed force-app/ (i.e. a merged PR), or by hand.
+#   - Bound to the GitHub environment `lakeside-developer-edition`, which requires a reviewer
+#     to approve the run before any step executes. The approval is recorded on the run.
+#   - guard-org runs again against the live org before deploying. If someone swapped the secret
+#     for a production org's auth URL, the edition check refuses it.
+# No production org is configured anywhere in this repository or its secrets.
+
+on:
+  push:
+    branches: [main]
+    paths: ['force-app/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-lakeside-dev
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: lakeside-developer-edition
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Salesforce CLI
+        run: npm install -g @salesforce/cli && sf --version
+      - name: Authenticate
+        env:
+          SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
+        run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --sfdx-url-stdin --alias lakeside-dev --set-default
+      - name: guard-org — the org must still be the allowlisted non-production org
+        run: scripts/guard-org.sh lakeside-dev
+      - name: Validate once more (check-only)
+        run: scripts/validate.sh lakeside-dev validate-result.json
+      - name: Deploy to the dev org
+        run: |
+          sf project deploy start -o lakeside-dev --source-dir force-app --test-level "${TEST_LEVEL:-NoTestRun}" --wait 30 --json > deploy-result.json || true
+          python3 - <<'PY'
+          import json; d=json.load(open("deploy-result.json")); r=d.get("result",{})
+          print("status:", r.get("status"), "| components:", r.get("numberComponentsDeployed"), "/", r.get("numberComponentsTotal"), "| id:", r.get("id"))
+          for f in (r.get("details") or {}).get("componentFailures") or []: print("FAIL", f.get("fullName"), f.get("problem"))
+          raise SystemExit(0 if r.get("status") == "Succeeded" else 1)
+          PY

@@ -1,0 +1,9 @@
+# Never source-track these; the agent is not allowed to write them either.
+**/profiles/**
+**/settings/**
+**/connectedApps/**
+**/namedCredentials/**
+**/remoteSiteSettings/**
+**/destructiveChanges*.xml
+.sf/
+.sfdx/

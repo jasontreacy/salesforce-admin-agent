@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GlobalValueSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customValue><fullName>No Budget</fullName><default>false</default><label>No Budget</label></customValue>
+    <customValue><fullName>Not a Retailer</fullName><default>false</default><label>Not a Retailer</label></customValue>
+    <customValue><fullName>Already a Customer</fullName><default>false</default><label>Already a Customer</label></customValue>
+    <customValue><fullName>Went with Competitor</fullName><default>false</default><label>Went with Competitor</label></customValue>
+    <description>Shared reasons a Lead or Opportunity is disqualified. Used by Lead.Unqualified_Reason__c.</description>
+    <masterLabel>Lakeside Unqualified Reasons</masterLabel>
+    <sorted>false</sorted>
+</GlobalValueSet>

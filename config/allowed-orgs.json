@@ -1,0 +1,13 @@
+{
+  "_comment": "The only orgs the agent may read from or validate against. guard-org.sh checks the LIVE org id and edition against this list before every validation; the Claude Code hook refuses any sf command that names an alias not listed here. Adding a production org to this file is a policy change that must be made by a human in a reviewed PR.",
+  "orgs": [
+    {
+      "alias": "lakeside-dev",
+      "org_id": "00Dak00000fRqpJEAS",
+      "edition": "Developer Edition",
+      "client": "Lakeside Outfitters (fictional)",
+      "owner": "jasontreacy",
+      "purpose": "Portfolio demo target. Contains no real customer data."
+    }
+  ]
+}

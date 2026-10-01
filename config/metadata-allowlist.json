@@ -1,0 +1,32 @@
+{
+  "_comment": "Metadata types the agent may create or modify. Anything not listed is refused by guard-metadata.sh, in the local build step and again in CI. The denied list is documentation only: it is not consulted by code, because the allowlist already excludes it. It exists so a reader can see what was deliberately left out and why.",
+  "allowed": [
+    "CustomField",
+    "ValidationRule",
+    "GlobalValueSet",
+    "PermissionSet",
+    "Layout",
+    "FlexiPage",
+    "Flow",
+    "ListView",
+    "CustomObject",
+    "RecordType"
+  ],
+  "denied": {
+    "Profile": "Org-wide access changes. A human makes these in Setup with a change record.",
+    "PermissionSetGroup": "Compound access; review one permission set at a time instead.",
+    "ApexClass": "Code needs tests and a code reviewer. Out of scope for v1 of this agent.",
+    "ApexTrigger": "Same as ApexClass, with order-of-execution risk.",
+    "LightningComponentBundle": "UI code; out of scope for v1.",
+    "AuraDefinitionBundle": "UI code; out of scope for v1.",
+    "StandardValueSet": "Changes standard picklists (Opportunity stages, Lead status) that reports and automation depend on org-wide.",
+    "Settings": "Org settings are never changed by automation.",
+    "ConnectedApp": "Authentication surface.",
+    "NamedCredential": "Credentials.",
+    "RemoteSiteSetting": "Outbound network access.",
+    "SharingRules": "Record visibility; a human decision.",
+    "Role": "Hierarchy; a human decision.",
+    "Group": "Membership; a human decision.",
+    "destructiveChanges": "Nothing is ever deleted by this pipeline. Deletions are a separate, human-run procedure."
+  }
+}

@@ -1,0 +1,132 @@
+name: validate
+
+# Runs on every pull request to main.
+#   guards   — the policy checks (fast, no org access): branch paths, scope approval, metadata allowlist, guard tests
+#   validate — a check-only deploy of force-app against the allowlisted dev org (build/ branches and maintainer branches)
+#   gate     — the single required status check; fails if any needed job failed
+# Nothing here can deploy for real: the only sf deploy command is inside scripts/validate.sh, which is --dry-run
+# and asserts checkOnly=true from the API response.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: validate-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  guards:
+    runs-on: ubuntu-latest
+    outputs:
+      kind: ${{ steps.classify.outputs.kind }}
+      req: ${{ steps.classify.outputs.req }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Classify branch
+        id: classify
+        run: |
+          B="${{ github.head_ref }}"
+          if [[ "$B" =~ ^build/(REQ-[0-9]+)$ ]]; then echo "kind=build" >> "$GITHUB_OUTPUT"; echo "req=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT";
+          elif [[ "$B" =~ ^scope/(REQ-[0-9]+)$ ]]; then echo "kind=scope" >> "$GITHUB_OUTPUT"; echo "req=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT";
+          else echo "kind=maintainer" >> "$GITHUB_OUTPUT"; echo "req=" >> "$GITHUB_OUTPUT"; fi
+          cat "$GITHUB_OUTPUT"
+
+      - name: Guard tests (the guards must pass their own tests before judging anything)
+        run: scripts/tests/run.sh
+
+      - name: guard-pr-paths — agent branches touch only their own files
+        run: scripts/guard-pr-paths.sh "origin/${{ github.base_ref }}" "${{ github.head_ref }}"
+
+      - name: guard-scope — a build needs a human-approved scope already on main
+        if: steps.classify.outputs.kind == 'build'
+        run: |
+          # The scope is read from the BASE branch, so a build PR cannot carry its own approval.
+          git show "origin/${{ github.base_ref }}:scopes/${{ steps.classify.outputs.req }}.md" > /tmp/scope-from-main.md
+          cp /tmp/scope-from-main.md "scopes/${{ steps.classify.outputs.req }}.md"
+          scripts/guard-scope.sh "scopes/${{ steps.classify.outputs.req }}.md"
+
+      - name: guard-metadata — changes stay inside the scope and the allowlist
+        if: steps.classify.outputs.kind == 'build'
+        run: scripts/guard-metadata.sh "origin/${{ github.base_ref }}" "scopes/${{ steps.classify.outputs.req }}.md"
+
+      - name: scope PR — front matter must parse and must not be pre-approved by the agent
+        if: steps.classify.outputs.kind == 'scope'
+        run: |
+          F="scopes/${{ steps.classify.outputs.req }}.md"
+          python3 scripts/lib/frontmatter.py "$F"
+          STATUS="$(python3 scripts/lib/frontmatter.py "$F" status)"
+          AUTHOR="$(git log -1 --format=%an -- "$F")"
+          echo "status=$STATUS last-author=$AUTHOR"
+          # A scope arrives as draft or blocked. Flipping it to approved is done by a human on the PR before merge.
+          if [ "$STATUS" = "approved" ] && [ "${{ github.event.pull_request.commits }}" = "1" ]; then
+            echo "::error::scope opened already approved in a single commit; approval must be a separate human edit"; exit 1; fi
+
+  validate:
+    needs: guards
+    if: needs.guards.outputs.kind != 'scope'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Salesforce CLI
+        run: npm install -g @salesforce/cli && sf --version
+      - name: Authenticate to the allowlisted dev org
+        env:
+          SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
+        run: |
+          if [ -z "$SFDX_AUTH_URL" ]; then echo "::error::SFDX_AUTH_URL secret missing (forks do not get it)"; exit 1; fi
+          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --sfdx-url-stdin --alias lakeside-dev --set-default
+      - name: guard-org — refuse anything that is not the allowlisted non-production org
+        run: scripts/guard-org.sh lakeside-dev
+      - name: Check-only deploy (validate.sh)
+        id: validate
+        run: scripts/validate.sh lakeside-dev validate-result.json | tee validate.log
+      - name: Comment result on the PR
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          STATUS="${{ steps.validate.outcome }}"
+          SUMMARY="$(tail -n 20 validate.log 2>/dev/null || echo 'no output')"
+          ID="$(python3 -c 'import json;print(json.load(open("validate-result.json")).get("result",{}).get("id","?"))' 2>/dev/null || echo '?')"
+          {
+            echo "<!-- validate-comment -->"
+            echo "### Check-only validation against \`lakeside-dev\`: **${STATUS}**"
+            echo
+            echo "Deployment id \`${ID}\` · run [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+            echo
+            echo '```'
+            echo "$SUMMARY"
+            echo '```'
+            echo
+            echo "_Nothing was saved to the org. Merging this PR does not deploy; deployment is a separate human-approved run of the \`deploy\` workflow._"
+          } > comment.md
+          EXISTING="$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" --jq '.[] | select(.body | startswith("<!-- validate-comment -->")) | .id' | head -n1)"
+          if [ -n "$EXISTING" ]; then
+            gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$EXISTING" -F body=@comment.md >/dev/null
+          else
+            gh pr comment "${{ github.event.pull_request.number }}" --body-file comment.md
+          fi
+
+  gate:
+    # The one required status check. Succeeds only if every needed job succeeded or was legitimately skipped.
+    needs: [guards, validate]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "guards=${{ needs.guards.result }} validate=${{ needs.validate.result }}"
+          [ "${{ needs.guards.result }}" = "success" ] || exit 1
+          [ "${{ needs.validate.result }}" = "success" ] || [ "${{ needs.validate.result }}" = "skipped" ] || exit 1

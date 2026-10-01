@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Unqualified_Reason__c</fullName>
+    <label>Unqualified Reason</label>
+    <description>Why a lead was marked Unqualified. Backed by the shared Lakeside_Unqualified_Reasons value set.</description>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetName>Lakeside_Unqualified_Reasons</valueSetName>
+    </valueSet>
+</CustomField>

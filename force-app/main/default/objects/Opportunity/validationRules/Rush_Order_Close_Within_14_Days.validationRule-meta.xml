@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Rush_Order_Close_Within_14_Days</fullName>
+    <active>true</active>
+    <description>A rush order cannot have a close date more than 14 days out.</description>
+    <errorConditionFormula>Rush_Order__c &amp;&amp; (CloseDate - TODAY() &gt; 14)</errorConditionFormula>
+    <errorDisplayField>CloseDate</errorDisplayField>
+    <errorMessage>Rush orders must close within 14 days. Clear Rush Order or move the Close Date.</errorMessage>
+</ValidationRule>
