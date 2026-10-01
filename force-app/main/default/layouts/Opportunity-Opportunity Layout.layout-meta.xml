@@ -76,6 +76,10 @@
                 <behavior>Edit</behavior>
                 <field>Order_Channel__c</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Fulfillment_Method__c</field>
+            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>

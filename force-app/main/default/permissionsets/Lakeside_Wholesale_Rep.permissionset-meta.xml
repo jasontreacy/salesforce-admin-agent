@@ -4,6 +4,7 @@
     <fieldPermissions><editable>true</editable><field>Lead.Store_Type__c</field><readable>true</readable></fieldPermissions>
     <fieldPermissions><editable>true</editable><field>Lead.Unqualified_Reason__c</field><readable>true</readable></fieldPermissions>
     <fieldPermissions><editable>true</editable><field>Opportunity.Order_Channel__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Opportunity.Fulfillment_Method__c</field><readable>true</readable></fieldPermissions>
     <fieldPermissions><editable>true</editable><field>Opportunity.Rush_Order__c</field><readable>true</readable></fieldPermissions>
     <fieldPermissions><editable>true</editable><field>Case.Return_Reason__c</field><readable>true</readable></fieldPermissions>
     <fieldPermissions><editable>true</editable><field>Case.Warranty_Claim__c</field><readable>true</readable></fieldPermissions>
