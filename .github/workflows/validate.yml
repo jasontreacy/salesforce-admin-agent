@@ -87,7 +87,7 @@ jobs:
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
         run: |
           if [ -z "$SFDX_AUTH_URL" ]; then echo "::error::SFDX_AUTH_URL secret missing (forks do not get it)"; exit 1; fi
-          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --sfdx-url-stdin --alias lakeside-dev --set-default
+          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --alias lakeside-dev --set-default --sfdx-url-stdin
       - name: guard-org — refuse anything that is not the allowlisted non-production org
         run: scripts/guard-org.sh lakeside-dev
       - name: Check-only deploy (validate.sh)

@@ -35,7 +35,7 @@ jobs:
       - name: Authenticate
         env:
           SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
-        run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --sfdx-url-stdin --alias lakeside-dev --set-default
+        run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --alias lakeside-dev --set-default --sfdx-url-stdin
       - name: guard-org — the org must still be the allowlisted non-production org
         run: scripts/guard-org.sh lakeside-dev
       - name: Validate once more (check-only)
