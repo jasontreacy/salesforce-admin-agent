@@ -9,7 +9,9 @@ Built as a portfolio piece by [Jason Treacy](https://github.com/jasontreacy). Th
 free Developer Edition org seeded with a fictional retailer, **Lakeside Outfitters**. Every
 ticket, person and record is invented.
 
-<!-- live-links -->
+**Live:** [PR #1](https://github.com/jasontreacy/salesforce-admin-agent/pull/1) is the agent's build for REQ-001, validated by CI, waiting for a human.
+[PR #2](https://github.com/jasontreacy/salesforce-admin-agent/pull/2) is the agent's draft scope for REQ-002, waiting for a human to approve it.
+The [Actions tab](https://github.com/jasontreacy/salesforce-admin-agent/actions) shows the `deploy` run for the baseline, held at the environment gate until a human approves.
 
 ## What it does
 
