@@ -36,7 +36,8 @@ If your Developer Edition org is brand new it contains no Apex, and you can set
 gh repo create <you>/salesforce-admin-agent --public --source . --push
 
 # CI auth: the org's SFDX auth URL, stored as a repository secret. Never echo it.
-sf org display -o lakeside-dev --verbose --json \
+# (Recent CLIs redact it from `sf org display`; this is the command that shows it.)
+sf org auth show-sfdx-auth-url -o lakeside-dev --json \
   | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["sfdxAuthUrl"])' \
   | gh secret set SFDX_AUTH_URL
 
